@@ -76,7 +76,7 @@ body {
 	left: 42px;
 	color: #d5d5d6;
 }
-.bottom-nav {
+#bottom-nav {
 	position: fixed;
 	bottom: 0;
 	display: -webkit-flex;
@@ -85,13 +85,13 @@ body {
 	height: 60px;
 	width: 100%;
 }
-.bottom-nav>div {
+#bottom-nav>div {
 	flex: 1;
 	text-align: center;
 	color: #d5d5d6;
 	line-height: 80px;
 }
-.bottom-nav>div>span {
+#bottom-nav>div>span {
 	display: inline-block;
 	height: 50px;
 }
@@ -170,4 +170,11 @@ body {
 	border: 1px solid #ff7800;
 	top: -2px;
 	left: -2px;
+}
+.article-action-mid{
+	position: fixed;
+	z-index: 10002;
+	width: 100%;
+	height: 40%;
+	top:30%;
 }
