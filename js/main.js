@@ -7,29 +7,92 @@
 		var StorageSetter = function(key, val) {
 			return localStorage.setItem(prefix + key, val);
 		}
+		var getJSONP = function(url, cb) {
+			return $.jsonp({
+				url: url,
+				cache: true,
+				callback: 'duokan_fiction_chapter',
+				success: function(result) {
+					var data = $.base64.decode(result);
+					var json = decodeURIComponent(escape(data));
+					cb(json);
+				}
+			})
+		}
 		return {
 			StorageGetter: StorageGetter,
-			StorageSetter: StorageSetter
+			StorageSetter: StorageSetter,
+			getJSONP: getJSONP
 		}
 	})();
 	var DOM = {
 		top_nav: $('#top-nav'),
-		bottom_nav: $('.bottom-nav')
+		bottom_nav: $('.bottom-nav'),
+		night: $('.night'),
 	}
 	var Win = $(window);
 	var Doc = $(document);
+	var RootContainer = $('#fiction_container');
+	var initFontSize = Utils.StorageGetter('fontSize') || 14;
+	RootContainer.css('fontSize', initFontSize + 'px');
 
 	function main() {
 		//入口函数
 		EventHanlder();
+		var readerModel = ReaderModel();
+		var readerUI = ReaderBaseFrame(RootContainer);
+		readerModel.init(function(data) {
+			readerUI(data);
+		});
 	}
 
 	function ReaderModel() {
 		//实现和阅读器相关的数据交互。
+		//1.获得章节信息，chapter。json
+		//2.获得某一章节数据，获取的过程中要用到jsonp的util函数，取回来的数据与ui交互
+		var Chapter_id;
+		var init = function(cb) {
+			getFictionInfo(function() {
+				getCurChapterContent(Chapter_id, function(data) {
+					cb && cb(data);
+				});
+			})
+		}
+		var getFictionInfo = function(callback) {
+			$.get('data/chapter.json', function(data) {
+				Chapter_id = data.chapters[1].chapter_id;
+				callback && callback();
+			}, 'json');
+		}
+		var getCurChapterContent = function(chapter_id, callback) {
+			$.get('data/data' + chapter_id + '.json', function(data) {
+				if (data.result == 0) {
+					var url = data.jsonp;
+					Utils.getJSONP(url, function(data) {
+						callback && callback(data);
+					});
+				}
+			}, 'json')
+		}
+		return {
+			init: init
+		}
 	}
 
-	function ReaderBaseFrame() {
+	function ReaderBaseFrame(container) {
 		//基本 的ui结构
+		function parseChapterData(jsonData) {
+			var jsonObj = JSON.parse(jsonData);
+			var html = '<h4>' + jsonObj.t + '</h4>';
+			for (var i = 0; i < jsonObj.p.length; i++) {
+				html = html + '<p>' + jsonObj.p[i] + '</p>';
+			}
+			return html;
+		}
+		return function(data) {
+			container.html(parseChapterData(data));
+		}
+
 	}
 
 	function EventHanlder() {
@@ -41,6 +104,20 @@
 			} else {
 				DOM.bottom_nav.hide();
 				DOM.top_nav.hide();
+			}
+		});
+		$('#large-font').click(function() {
+			if (initFontSize < 22) {
+				initFontSize++;
+				RootContainer.css('fontSize', initFontSize + 'px');
+				Utils.StorageSetter('fontSize', initFontSize);
+			}
+		});
+		$('#small-font').click(function() {
+			if (initFontSize > 12) {
+				initFontSize--;
+				RootContainer.css('fontSize', initFontSize + 'px');
+				Utils.StorageSetter('fontSize', initFontSize);
 			}
 		});
 		Win.scroll(function() {
