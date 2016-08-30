@@ -1,4 +1,5 @@
 (function() {
+    // 'use strict';
     var Utils = (function() {
         var prefix = 'html5_reader_';
         var StorageGetter = function(key) {
@@ -58,14 +59,32 @@
                     cb && cb(data);
                 });
             })
+            getFictionInfoPromise.then(function(d) {
+                return getCurChapterContentPromise;
+            }).then(function(d) {
+                cb && cb(d);
+            })
         }
         var getFictionInfo = function(callback) {
-            $.get('data/chapter.json', function(data) {
-                Chapter_total = data.chapters.length;
-                Chapter_id = data.chapters[1].chapter_id;
-                callback && callback();
-            }, 'json');
-        }
+                $.get('data/chapter.json', function(data) {
+                    Chapter_total = data.chapters.length;
+                    Chapter_id = data.chapters[1].chapter_id;
+                    callback && callback();
+                }, 'json');
+            }
+            // var getFictionInfoPromise = function() {
+            //     return new Promise(function(resolve, reject) {
+            //         $.get('data/chapter.json', function(data) {
+            //             if (data.result == 0) {
+            //                 Chapter_total = data.chapters.length;
+            //                 Chapter_id = data.chapters[1].chapter_id;
+            //                 resolve();
+            //             } else {
+            //                 reject();
+            //             }
+            //         }, 'json');
+            //     })
+            // }
         var getCurChapterContent = function(chapter_id, callback) {
             $.get('data/data' + chapter_id + '.json', function(data) {
                 if (data.result == 0) {
@@ -76,6 +95,20 @@
                 }
             }, 'json')
         }
+        // var getCurChapterContentPromise = function() {
+        //     return new Promise(function(resolve, reject) {
+        //         $.get('data/data' + chapter_id + '.json', function(data) {
+        //             if (data.result == 0) {
+        //                 var url = data.jsonp;
+        //                 Utils.getJSONP(url, function(data) {
+        //                     resolve(data);
+        //                 });
+        //             } else {
+        //                 reject();
+        //             }
+        //         }, 'json')
+        //     })
+        // }
         var prevChapter = function(cb) {
             Chapter_id = parseInt(Chapter_id, 10);
             if (Chapter_id == 0) {
